@@ -7,6 +7,13 @@
 #include <Qthread>
 
 
+BFS_class::BFS_class(int rows, int cols, int startNodeId, int endNodeId, QObject *parent)
+    : QObject{parent}, rows(rows), cols(cols), startNodeId(startNodeId), endNodeId(endNodeId),
+    currentAnimationFrame(0), timer(new QTimer(this)), milisecondsPerFrame(1000)
+{
+    connect(timer, &QTimer::timeout, this, &BFS_class::startAnimation);;
+    inicializeGraph(rows, cols);
+}
 
 void BFS_class::inicializeGraph(int rows, int cols)
 {
@@ -42,11 +49,7 @@ void BFS_class::inicializeGraph(int rows, int cols)
     }
 }
 
-BFS_class::BFS_class(int rows, int cols, int startNodeId, int endNodeId, QObject *parent)
-    : QObject{parent}, rows(rows), cols(cols), startNodeId(startNodeId), endNodeId(endNodeId)
-{
-    inicializeGraph(rows, cols);
-}
+
 
 QVector<int> BFS_class::search()
 {
@@ -54,6 +57,14 @@ QVector<int> BFS_class::search()
     QQueue<Node*> queue;
     QList<Node*> nodeList;
     QVector<int> path;
+
+
+    QVector<QVector<Node>> buffor;
+    buffor.resize(rows);
+    for(int i = 0; i < cols; i++){
+        buffor[i].resize(cols);
+    }
+
 
     for(int i = 0; i < rows; i++){
         for(int j = 0; j< cols; j++){
@@ -63,16 +74,23 @@ QVector<int> BFS_class::search()
 
     queue.enqueue(nodeList[startNodeId]);
     nodeList[startNodeId]->setVisited(true);
-    setGraph(getGraph());
+
+    for (int i =0; i< graph.size(); i++){
+        for (int j = 0; j< graph[0].size(); j++){
+            buffor[i][j] = graph[i][j];
+        }
+    }
+    graphHistory.append(buffor);
 
 
     while (! queue.isEmpty()){
         Node* currentNode = queue.dequeue();
+        stepNumber+=1;
         if(currentNode->getId() == endNodeId){
             qDebug() << "found";
             break;
         }
-        qDebug() << currentNode->getId();
+        // qDebug() << currentNode->getId();
         for(int neighbourId: currentNode->neighbours){
             Node* nieghbour = nodeList[neighbourId];
             if(!nieghbour->getVisited()){
@@ -80,9 +98,19 @@ QVector<int> BFS_class::search()
                 parent[neighbourId] = currentNode->getId();
                 nieghbour->setVisited(true);
                 queue.enqueue(nieghbour);
-                setGraph(getGraph());
+
+                for (int i =0; i< graph.size(); i++){
+                    for (int j = 0; j< graph[0].size(); j++){
+                        buffor[i][j] = graph[i][j];
+                    }
+                }
+                graphHistory.append(buffor);
+
+                // setGraph(getGraph());
+                // emit graphChanged();
             }
         }
+
     }
 
 
@@ -94,15 +122,14 @@ QVector<int> BFS_class::search()
     path.append(currentId);
     std::reverse(path.begin(), path.end());
 
-    qDebug() << path;
+    // qDebug() << path;
 
     // QList<bool> newGraph;
     // for(Node* node: nodeList){
     //     newGraph.append(node->getVisited());
     // }
 
-    qDebug() << getGraph();
-
+    timer->start(milisecondsPerFrame);
     return path;
 }
 
@@ -141,4 +168,21 @@ void BFS_class::setGraph(const QList<bool> &newGraph)
     }
 
     emit graphChanged();
+}
+
+void BFS_class::startAnimation()
+{
+    qDebug() << currentAnimationFrame;
+    graph = graphHistory[currentAnimationFrame];
+
+    // for (int i =0; i< graph.capacity(); i++){
+    //     for (int j = 0; j< graph[0].size(); j++){
+    //         qDebug() << graph[i][j].getVisited();
+    //     }
+    // }
+    // qDebug() << '\n';
+
+    currentAnimationFrame+=1;
+    emit graphChanged();
+    if(currentAnimationFrame == stepNumber) timer->stop();
 }

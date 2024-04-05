@@ -59,14 +59,14 @@ Window {
                     }
             }
 
-            Connections {
-                        target: BFS
-                        onColorChanged: {
+            // Connections {
+            //             target: BFS
+            //             onColorChanged: {
 
-                                repeater.itemAt(index).color = newColor ? "goldenrod" : "wheat"; // Zmiana koloru na podstawie nowej wartości
+            //                     repeater.itemAt(index).color = newColor ? "goldenrod" : "wheat"; // Zmiana koloru na podstawie nowej wartości
 
-                        }
-                }
+            //             }
+            //     }
 
         }
 

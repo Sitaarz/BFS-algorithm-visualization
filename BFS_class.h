@@ -6,7 +6,8 @@
 #include <QQueue>
 #include <QList>
 #include "Node.h"
-#include<QQmlListProperty>
+#include <QQmlListProperty>
+#include <QTimer>
 
 class BFS_class : public QObject
 {
@@ -19,8 +20,14 @@ private:
     int endNodeId;
     const int rows;
     const int cols;
+    int stepNumber = 0;
+
+    QTimer *timer;
+    int currentAnimationFrame;
+    int milisecondsPerFrame;
 
     QVector<QVector<Node>> graph;
+    QVector<QVector<QVector<Node>>> graphHistory;
 
     void inicializeGraph(int rows, int cols);
 public:
@@ -38,6 +45,8 @@ public:
     void changeColor(int id, bool newColor) {
         emit colorChanged(id, newColor);
     }
+
+    void startAnimation();
 
 signals:
     void graphChanged();
