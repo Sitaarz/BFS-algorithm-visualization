@@ -9,7 +9,8 @@
 
 BFS_class::BFS_class(int rows, int cols, int startNodeId, int endNodeId, QObject *parent)
     : QObject{parent}, rows(rows), cols(cols), startNodeId(startNodeId), endNodeId(endNodeId),
-    currentAnimationFrame(0), timer(new QTimer(this)), milisecondsPerFrame(1000)
+    currentAnimationFrame(0), timer(new QTimer(this)), milisecondsPerFrame(1000),
+    stepNumber(0)
 {
     connect(timer, &QTimer::timeout, this, &BFS_class::startAnimation);;
     inicializeGraph(rows, cols);
@@ -39,12 +40,6 @@ void BFS_class::inicializeGraph(int rows, int cols)
             if(bottomNodeId != currentIndex) neighbours.push_back( (i+1) * rows + j);
 
             graph[i][j] = Node(i*rows+j, neighbours);
-
-            // qDebug() << graph[i][j].getId();
-            // for(auto element: graph[i][j].neighbours){
-            //     qDebug() << element;
-            // }
-            // qDebug() << "\n";
         }
     }
 }
@@ -57,7 +52,7 @@ QVector<int> BFS_class::search()
     QQueue<Node*> queue;
     QList<Node*> nodeList;
     QVector<int> path;
-
+    stepNumber=0;
 
     QVector<QVector<Node>> buffor;
     buffor.resize(rows);
@@ -80,9 +75,8 @@ QVector<int> BFS_class::search()
             buffor[i][j] = graph[i][j];
         }
     }
+
     graphHistory.append(buffor);
-
-
     while (! queue.isEmpty()){
         Node* currentNode = queue.dequeue();
         stepNumber+=1;
@@ -90,11 +84,9 @@ QVector<int> BFS_class::search()
             qDebug() << "found";
             break;
         }
-        // qDebug() << currentNode->getId();
         for(int neighbourId: currentNode->neighbours){
             Node* nieghbour = nodeList[neighbourId];
             if(!nieghbour->getVisited()){
-                // changeColor(neighbourId, true);
                 parent[neighbourId] = currentNode->getId();
                 nieghbour->setVisited(true);
                 queue.enqueue(nieghbour);
@@ -105,14 +97,9 @@ QVector<int> BFS_class::search()
                     }
                 }
                 graphHistory.append(buffor);
-
-                // setGraph(getGraph());
-                // emit graphChanged();
             }
         }
-
     }
-
 
     int currentId = endNodeId;
         while (currentId != startNodeId){
@@ -121,14 +108,6 @@ QVector<int> BFS_class::search()
     }
     path.append(currentId);
     std::reverse(path.begin(), path.end());
-
-    // qDebug() << path;
-
-    // QList<bool> newGraph;
-    // for(Node* node: nodeList){
-    //     newGraph.append(node->getVisited());
-    // }
-
     timer->start(milisecondsPerFrame);
     return path;
 }
@@ -159,6 +138,11 @@ void BFS_class::startSearch()
     search();
 }
 
+void BFS_class::startReset()
+{
+    reset();
+}
+
 void BFS_class::setGraph(const QList<bool> &newGraph)
 {
     for(int i = 0; i<rows; i++){
@@ -166,23 +150,72 @@ void BFS_class::setGraph(const QList<bool> &newGraph)
             graph[i][j].setVisited(newGraph[i*cols+j]);
         }
     }
+    emit graphChanged();
+}
 
+void BFS_class::reset()
+{
+    timer->stop();
+    graphHistory = QVector<QVector<QVector<Node>>>();
+    graph = QVector<QVector<Node>>();
+    inicializeGraph(rows,cols);
+    currentAnimationFrame=0;
     emit graphChanged();
 }
 
 void BFS_class::startAnimation()
 {
-    qDebug() << currentAnimationFrame;
     graph = graphHistory[currentAnimationFrame];
-
-    // for (int i =0; i< graph.capacity(); i++){
-    //     for (int j = 0; j< graph[0].size(); j++){
-    //         qDebug() << graph[i][j].getVisited();
-    //     }
-    // }
-    // qDebug() << '\n';
-
     currentAnimationFrame+=1;
     emit graphChanged();
     if(currentAnimationFrame == stepNumber) timer->stop();
+}
+
+int BFS_class::getReceivedInt() const
+{
+    return m_receivedInt;
+}
+
+void BFS_class::setReceivedInt(int value)
+{
+    if (m_receivedInt != value) {
+        qDebug() << value;
+        rows = value;
+        cols = value;
+        reset();
+        emit rowsChanged();
+        emit colsChanged();
+        emit receivedIntChanged();
+        if (value * value - 1 < startNodeId) startNodeId = 0;
+        if (value * value - 1 < endNodeId) endNodeId = value * value - 1;
+    }
+}
+
+int BFS_class::getStartNodeId() const
+{
+    return startNodeId;
+}
+
+void BFS_class::setStartNodeId(int newStartNode)
+{
+    if (startNodeId == newStartNode)
+        return;
+    startNodeId = newStartNode;
+    reset();
+    qDebug() << newStartNode;
+    emit startNodeIdChanged();
+}
+
+int BFS_class::getEndNodeId() const
+{
+    return endNodeId;
+}
+
+void BFS_class::setEndNodeId(int newEndNode)
+{
+    if (endNodeId == newEndNode)
+        return;
+    endNodeId = newEndNode;
+    reset();
+    emit endNodeIdChanged();
 }

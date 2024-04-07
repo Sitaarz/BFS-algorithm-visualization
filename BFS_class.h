@@ -15,12 +15,16 @@ class BFS_class : public QObject
     Q_PROPERTY(QList<bool> graph READ getGraph WRITE setGraph NOTIFY graphChanged)
     Q_PROPERTY(int rows READ getRows NOTIFY rowsChanged)
     Q_PROPERTY(int cols READ getCols NOTIFY colsChanged)
+    Q_PROPERTY(int receivedInt READ getReceivedInt WRITE setReceivedInt NOTIFY receivedIntChanged)
+    Q_PROPERTY(int startNodeId READ getStartNodeId WRITE setStartNodeId NOTIFY startNodeIdChanged)
+    Q_PROPERTY(int endNodeId READ getEndNodeId WRITE setEndNodeId NOTIFY endNodeIdChanged)
 private:
     int startNodeId;
     int endNodeId;
-    const int rows;
-    const int cols;
-    int stepNumber = 0;
+    int rows;
+    int cols;
+    int stepNumber;
+    int m_receivedInt;
 
     QTimer *timer;
     int currentAnimationFrame;
@@ -30,6 +34,8 @@ private:
     QVector<QVector<QVector<Node>>> graphHistory;
 
     void inicializeGraph(int rows, int cols);
+
+
 public:
     explicit BFS_class(int rows, int cols, int startNodeId, int endNodeId, QObject *parent = nullptr);
 
@@ -42,20 +48,37 @@ public:
 
     void setGraph(const QList<bool> &newGraph);
 
-    void changeColor(int id, bool newColor) {
-        emit colorChanged(id, newColor);
-    }
+    void changeColor(int id, bool newColor);
+    void reset();
 
     void startAnimation();
+
+    int getReceivedInt() const;
+    void setReceivedInt(int value);
+
+    int getStartNodeId() const;
+    void setStartNodeId(int newStartNode);
+
+    int getEndNodeId() const;
+    void setEndNodeId(int newEndNode);
 
 signals:
     void graphChanged();
     void rowsChanged();
     void colsChanged();
     void colorChanged(int id, bool newColor);
+    void receivedIntChanged();
+
+    void startNodeIdChanged();
+    void endNodeIdChanged();
 
 public slots:
     void startSearch();
+    void startReset();
 };
+
+inline void BFS_class::changeColor(int id, bool newColor) {
+    emit colorChanged(id, newColor);
+}
 
 #endif // BFS_CLASS_H
