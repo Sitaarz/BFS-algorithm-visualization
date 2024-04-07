@@ -25,6 +25,7 @@ private:
     int cols;
     int stepNumber;
     int m_receivedInt;
+    QVector<int> shortestPath;
 
     QTimer *timer;
     int currentAnimationFrame;
@@ -62,6 +63,8 @@ public:
     int getEndNodeId() const;
     void setEndNodeId(int newEndNode);
 
+
+
 signals:
     void graphChanged();
     void rowsChanged();
@@ -75,6 +78,7 @@ signals:
 public slots:
     void startSearch();
     void startReset();
+    void showShortestPath();
 };
 
 inline void BFS_class::changeColor(int id, bool newColor) {

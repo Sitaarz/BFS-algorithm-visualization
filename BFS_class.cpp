@@ -81,7 +81,6 @@ QVector<int> BFS_class::search()
         Node* currentNode = queue.dequeue();
         stepNumber+=1;
         if(currentNode->getId() == endNodeId){
-            qDebug() << "found";
             break;
         }
         for(int neighbourId: currentNode->neighbours){
@@ -109,6 +108,7 @@ QVector<int> BFS_class::search()
     path.append(currentId);
     std::reverse(path.begin(), path.end());
     timer->start(milisecondsPerFrame);
+    shortestPath = path;
     return path;
 }
 
@@ -179,7 +179,6 @@ int BFS_class::getReceivedInt() const
 void BFS_class::setReceivedInt(int value)
 {
     if (m_receivedInt != value) {
-        qDebug() << value;
         rows = value;
         cols = value;
         reset();
@@ -202,7 +201,6 @@ void BFS_class::setStartNodeId(int newStartNode)
         return;
     startNodeId = newStartNode;
     reset();
-    qDebug() << newStartNode;
     emit startNodeIdChanged();
 }
 
@@ -218,4 +216,17 @@ void BFS_class::setEndNodeId(int newEndNode)
     endNodeId = newEndNode;
     reset();
     emit endNodeIdChanged();
+}
+
+void BFS_class::showShortestPath()
+{
+    reset();
+    for(int index: shortestPath){
+        int row = static_cast<int>(index/rows);
+        int col = static_cast<int>(index%rows);
+
+        graph[row][col].setVisited(true);
+    }
+
+    emit graphChanged();
 }
