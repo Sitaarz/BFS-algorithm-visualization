@@ -11,7 +11,7 @@ int main(int argc, char *argv[])
 
     QQmlApplicationEngine engine;
 
-    BFS_class* bfs = new BFS_class(5, 5, 3, 10, &app);
+    BFS_class* bfs = new BFS_class(5, 5, 4, 20, &app);
     qmlRegisterSingletonInstance("BFS", 1, 0, "BFS", bfs);
 
     const QUrl url(u"qrc:/C_connection/Main.qml"_qs);
